@@ -1,5 +1,6 @@
 use mongodb::{bson::doc, options::ClientOptions, Client};
 use serde::{Deserialize, Serialize};
+use tokio::task::JoinHandle;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Stinkies {
@@ -19,19 +20,36 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let collection: mongodb::Collection<Stinkies> = db.collection("stinkies");
 
     let vulpera_doc = collection.find_one(None, None).await?.unwrap();
+    let vulpera = &vulpera_doc.vulpera;
+    let url = &vulpera_doc.url;
 
     loop {
-        let vulpera = &vulpera_doc.vulpera;
+        let mut tasks: Vec<JoinHandle<()>> = vec![];
         for v in vulpera {
-            // Perform a PUT request to the API
-            let disambiguation = v.split("-").collect::<Vec<&str>>();
-            let res = http_client
-                .put(format!("{}/{}/{}/battlenet", vulpera_doc.url, disambiguation[1], disambiguation[0]))
-                .json(&v)
-                .send()
-                .await?;
+            let v = v.clone();
+            let http_client = http_client.clone();
+            let url = url.clone();
+            let thread = tokio::spawn(async move {
+                // Perform a PUT request to the API
+                let disambiguation = v.split("-").collect::<Vec<&str>>();
+                // Send a PUT request, but don't care about the response.
+                let _ = http_client
+                    .put(&format!(
+                        "{}/{}/{}/battlenet",
+                        url, disambiguation[0], disambiguation[1]
+                    ))
+                    .send()
+                    .await;
 
-            println!("{:?}", res);
+                println!("🔫 ( ͡° ͜ʖ ͡°) {} has been shifted.", v);
+            });
+
+            tasks.push(thread);
+        }
+
+        for task in tasks {
+            // Await all the stinky nerds.
+            task.await?;
         }
 
         tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
