@@ -1,0 +1,13 @@
+[package]
+name = "nzoths-trident"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+openssl = { version = "0.10.50", features = ["vendored"] }
+serde = { version = "1.0.160", features = ["derive"] }
+tokio = { version = "1.27.0", features = ["full"] }
+reqwest = { version = "0.11.16", features = ["json"] }
+mongodb = "2.4.0"
