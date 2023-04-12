@@ -32,11 +32,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let thread = tokio::spawn(async move {
                 // Perform a PUT request to the API
                 let disambiguation = v.split("-").collect::<Vec<&str>>();
-                // Send a PUT request, but don't care about the response.
                 let _ = http_client
                     .put(&format!(
                         "{}/{}/{}/battlenet",
-                        url, disambiguation[0], disambiguation[1]
+                        url, disambiguation[1], disambiguation[0]
                     ))
                     .send()
                     .await;
