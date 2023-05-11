@@ -7,6 +7,7 @@ struct Stinkies {
     vulpera: Vec<String>,
     url: String,
     interval: u64,
+    function: String,
 }
 
 #[tokio::main]
@@ -25,9 +26,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let url = vulpera_doc.url;
     let interval = vulpera_doc.interval;
 
+    let mut headers = reqwest::header::HeaderMap::new();
+
+    headers.insert(
+        "function",
+        reqwest::header::HeaderValue::from_str(&vulpera_doc.function)?,
+    );
+
     loop {
         let mut tasks: Vec<JoinHandle<()>> = vec![];
+        let h = headers.clone();
         for v in vulpera {
+            let h = h.clone();
             let v = v.clone();
             let http_client = http_client.clone();
             let url = url.clone();
@@ -35,10 +45,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 // Perform a PUT request to the API
                 let disambiguation = v.split("-").collect::<Vec<&str>>();
                 let _ = http_client
-                    .put(&format!(
+                    .get(&format!(
                         "{}/{}/{}/history",
                         url, disambiguation[1], disambiguation[0]
                     ))
+                    .headers(h)
                     .send()
                     .await;
 
