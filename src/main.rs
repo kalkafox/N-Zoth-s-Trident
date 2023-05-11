@@ -22,8 +22,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let vulpera_doc = collection.find_one(None, None).await?.unwrap();
     let vulpera = &vulpera_doc.vulpera;
-    let url = vulpera_doc.url;
-    let interval = vulpera_doc.interval;
+    let url = &vulpera_doc.url;
 
     loop {
         let mut tasks: Vec<JoinHandle<()>> = vec![];
@@ -53,6 +52,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             task.await?;
         }
 
-        tokio::time::sleep(tokio::time::Duration::from_secs(interval)).await;
+        tokio::time::sleep(tokio::time::Duration::from_secs(60)).await;
     }
 }
