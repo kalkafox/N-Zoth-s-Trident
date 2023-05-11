@@ -22,7 +22,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let vulpera_doc = collection.find_one(None, None).await?.unwrap();
     let vulpera = &vulpera_doc.vulpera;
-    let url = &vulpera_doc.url;
+    let url = vulpera_doc.url;
+    let interval = vulpera_doc.interval;
 
     loop {
         let mut tasks: Vec<JoinHandle<()>> = vec![];
@@ -35,7 +36,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let disambiguation = v.split("-").collect::<Vec<&str>>();
                 let _ = http_client
                     .put(&format!(
-                        "{}/{}/{}/battlenet",
+                        "{}/{}/{}/history",
                         url, disambiguation[1], disambiguation[0]
                     ))
                     .send()
@@ -52,6 +53,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             task.await?;
         }
 
-        tokio::time::sleep(tokio::time::Duration::from_secs(60)).await;
+        tokio::time::sleep(tokio::time::Duration::from_secs(interval)).await;
     }
 }
